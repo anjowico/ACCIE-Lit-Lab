@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Assessments</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00796b;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #004d40;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 750px;
+            margin: 20px 0;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 5px solid #00796b;
+            font-size: 1.1em;
+        }
+
+        .question p {
+            margin: 5px 0;
+        }
+
+        .question input, .question button, .question select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .question button {
+            background-color: #00796b;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .question button:hover {
+            background-color: #004d40;
+        }
+
+        .question button:active {
+            background-color: #00332f;
+        }
+
+        .feedback {
+            color: #00796b;
+            font-weight: bold;
+        }
+
+        /* Styling for the classroom code */
+        .classroom-code {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #00796b;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Additional Assessments</h1>
+
+    <div class="container">
+        <h2>Terms</h2>
+        <div id="termsList"></div>
+    </div>
+
+    <div class="container">
+        <h2>Jumbled Words</h2>
+        <div id="jumbledWordsList"></div>
+    </div>
+
+    <div class="container">
+        <h2>Fill in the Blank Questions</h2>
+        <div id="blankQuestionsList"></div>
+    </div>
+
+    <div class="container">
+        <h2>Yes/No Questions</h2>
+        <div id="yesNoQuestionsList"></div>
+    </div>
+
+    <div class="container">
+        <h2>Definition of Terms</h2>
+        <div id="definitionOfTermsList"></div>
+    </div>
+
+    <div id="classroomCodeContainer" class="container">
+        <h2>Classroom Code</h2>
+        <div id="classroomCode"></div>
+    </div>
+
+    <script>
+        // Retrieve data from localStorage
+        const terms = JSON.parse(localStorage.getItem("terms")) || [];
+        const jumbledWords = JSON.parse(localStorage.getItem("jumbledWords")) || [];
+        const fillInBlankQuestions = JSON.parse(localStorage.getItem("fillInBlankQuestions")) || [];
+        const yesNoQuestions = JSON.parse(localStorage.getItem("yesNoQuestions")) || [];
+        const definitionOfTerms = JSON.parse(localStorage.getItem("definitionOfTerms")) || [];
+        const classroomCode = localStorage.getItem("classroomCode") || "No classroom code saved.";
+
+        // Render Terms
+        function renderTerms() {
+            const list = document.getElementById("termsList");
+            list.innerHTML = "";
+            if (terms.length === 0) {
+                list.innerHTML = "<p>No terms saved yet.</p>";
+            } else {
+                terms.forEach(function(term) {
+                    const termElement = document.createElement("div");
+                    termElement.classList.add("question");
+                    termElement.innerHTML = `<p>Term: ${term.word}</p>`;
+                    list.appendChild(termElement);
+                });
+            }
+        }
+
+        // Render Jumbled Words with Answer Input
+        function renderJumbledWords() {
+            const list = document.getElementById("jumbledWordsList");
+            list.innerHTML = "";
+            if (jumbledWords.length === 0) {
+                list.innerHTML = "<p>No jumbled words saved yet.</p>";
+            } else {
+                jumbledWords.forEach(function(wordObj, index) {
+                    const wordElement = document.createElement("div");
+                    wordElement.classList.add("question");
+                    wordElement.innerHTML = `
+                        <p>Original Word: ${wordObj.originalWord}</p>
+                        <p>Jumbled Word: ${wordObj.jumbledWord}</p>
+                        <input type="text" id="answerJumbledWord${index}" placeholder="Enter your answer">
+                        <button onclick="checkJumbledWord(${index})">Check Answer</button>
+                        <p id="feedbackJumbledWord${index}" class="feedback"></p>
+                    `;
+                    list.appendChild(wordElement);
+                });
+            }
+        }
+
+        // Check Jumbled Word Answer
+        function checkJumbledWord(index) {
+            const studentAnswer = document.getElementById(`answerJumbledWord${index}`).value.trim();
+            const feedbackElement = document.getElementById(`feedbackJumbledWord${index}`);
+            if (studentAnswer.toLowerCase() === jumbledWords[index].originalWord.toLowerCase()) {
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.style.color = "green";
+            } else {
+                feedbackElement.textContent = "Incorrect. Try again!";
+                feedbackElement.style.color = "red";
+            }
+        }
+
+        // Render Fill-in-the-Blank Questions with Answer Input
+        function renderFillInBlankQuestions() {
+            const list = document.getElementById("blankQuestionsList");
+            list.innerHTML = "";
+            if (fillInBlankQuestions.length === 0) {
+                list.innerHTML = "<p>No fill-in-the-blank questions saved yet.</p>";
+            } else {
+                fillInBlankQuestions.forEach(function(question, index) {
+                    const questionElement = document.createElement("div");
+                    questionElement.classList.add("question");
+                    questionElement.innerHTML = `
+                        <p>Sentence: ${question.sentence}</p>
+                        <input type="text" id="answerBlankQuestion${index}" placeholder="Your answer">
+                        <button onclick="checkBlankQuestion(${index})">Check Answer</button>
+                        <p id="feedbackBlankQuestion${index}" class="feedback"></p>
+                    `;
+                    list.appendChild(questionElement);
+                });
+            }
+        }
+
+        // Check Fill-in-the-Blank Answer
+        function checkBlankQuestion(index) {
+            const studentAnswer = document.getElementById(`answerBlankQuestion${index}`).value.trim();
+            const feedbackElement = document.getElementById(`feedbackBlankQuestion${index}`);
+            if (studentAnswer.toLowerCase() === fillInBlankQuestions[index].answer.toLowerCase()) {
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.style.color = "green";
+            } else {
+                feedbackElement.textContent = "Incorrect. Try again!";
+                feedbackElement.style.color = "red";
+            }
+        }
+
+        // Render Yes/No Questions with Answer Selection
+        function renderYesNoQuestions() {
+            const list = document.getElementById("yesNoQuestionsList");
+            list.innerHTML = "";
+            if (yesNoQuestions.length === 0) {
+                list.innerHTML = "<p>No Yes/No questions saved yet.</p>";
+            } else {
+                yesNoQuestions.forEach(function(question, index) {
+                    const questionElement = document.createElement("div");
+                    questionElement.classList.add("question");
+                    questionElement.innerHTML = `
+                        <p>Word: ${question.word}</p>
+                        <p>Context: ${question.context}</p>
+                        <select id="answerYesNo${index}">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <button onclick="checkYesNoAnswer(${index})">Check Answer</button>
+                        <p id="feedbackYesNo${index}" class="feedback"></p>
+                    `;
+                    list.appendChild(questionElement);
+                });
+            }
+        }
+
+        // Check Yes/No Answer
+        function checkYesNoAnswer(index) {
+            const studentAnswer = document.getElementById(`answerYesNo${index}`).value;
+            const feedbackElement = document.getElementById(`feedbackYesNo${index}`);
+            if (studentAnswer === yesNoQuestions[index].correctAnswer) {
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.style.color = "green";
+            } else {
+                feedbackElement.textContent = "Incorrect. Try again!";
+                feedbackElement.style.color = "red";
+            }
+        }
+
+        // Render Definition of Terms with Answer Input
+        function renderDefinitionOfTerms() {
+            const list = document.getElementById("definitionOfTermsList");
+            list.innerHTML = "";
+            if (definitionOfTerms.length === 0) {
+                list.innerHTML = "<p>No definition of terms saved yet.</p>";
+            } else {
+                definitionOfTerms.forEach(function(termObj, index) {
+                    const termElement = document.createElement("div");
+                    termElement.classList.add("question");
+                    termElement.innerHTML = `
+                        <p>Term: ${termObj.term}</p>
+                        <input type="text" id="answerDefinition${index}" placeholder="Enter the definition">
+                        <button onclick="checkDefinitionAnswer(${index})">Check Answer</button>
+                        <p id="feedbackDefinition${index}" class="feedback"></p>
+                    `;
+                    list.appendChild(termElement);
+                });
+            }
+        }
+
+        // Check Definition of Term Answer
+        function checkDefinitionAnswer(index) {
+            const studentAnswer = document.getElementById(`answerDefinition${index}`).value.trim();
+            const feedbackElement = document.getElementById(`feedbackDefinition${index}`);
+            if (studentAnswer.toLowerCase() === definitionOfTerms[index].definition.toLowerCase()) {
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.style.color = "green";
+            } else {
+                feedbackElement.textContent = "Incorrect. Try again!";
+                feedbackElement.style.color = "red";
+            }
+        }
+
+        // Display Classroom Code
+        function renderClassroomCode() {
+            const codeElement = document.getElementById("classroomCode");
+            codeElement.innerHTML = `<p>${classroomCode}</p>`;
+        }
+
+        // Render all saved assessments
+        renderTerms();
+        renderJumbledWords();
+        renderFillInBlankQuestions();
+        renderYesNoQuestions();
+        renderDefinitionOfTerms();
+        renderClassroomCode();
+    </script>
+
+</body>
+</html>
+
